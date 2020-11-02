@@ -61,6 +61,9 @@ class Crawler(threading.Thread):
                 url = self.baseURL+url
             if "#" in url:
                 continue
+            scheme = urlparse(url).scheme
+            if scheme=="":
+                url = self.baseURL+"/"+url
             url = self.normalizeUrl(url)
             if url.endswith("/"):
                 url = url[0:-1]

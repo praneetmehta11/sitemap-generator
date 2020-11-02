@@ -3,12 +3,12 @@ Sitemap Generator is a python based web crawler that generates sitemap for a giv
 
 ### Prerequisites:
 * Python 3
-* Google chrome browser (required for selenium)
+* Google chrome browser Latest (required for selenium)
 
 ### Python dependencies:
 >beautifulsoup4,requests,selenium,Flask
 
-### For insatlling dependencies:
+### For installing dependencies:
     pip install -r requirements.txt
 
 ### To run the project 
