@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Sitemap Generator</title>
+        <meta name="description" content="Sitemap Generator" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <style>
+            .title {
+                width: 100%;
+                padding: 5px;
+                color: #004a7f;
+                font-size: 60px;
+                font-weight: bold;
+                text-align: center;
+            }
+            #loader1 { 
+            border: 12px solid #f3f3f3; 
+            border-radius: 50%; 
+            border-top: 12px solid #444444; 
+            width: 70px; 
+            height: 70px; 
+            animation: spin 1s linear infinite; 
+        } 
+          
+        #loading { 
+            border: 12px solid #f3f3f3; 
+            border-radius: 50%; 
+            border-top: 12px solid #444444; 
+            width: 70px; 
+            height: 70px; 
+            animation: spin 1s linear infinite; 
+        } 
+        @keyframes spin { 
+            100% { 
+                transform: rotate(360deg); 
+            } 
+        } 
+          
+        .center { 
+            position: absolute; 
+            top: 0; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            margin: auto; 
+        } 
+        </style>
+    </head>
+
+    <body>
+        <div id="loader" class="center">
+            <div class="col-md-10 col-md-offset-3">
+                <h2>Please wait we are creating sitemap.</h2>
+                <div class="form-group row">
+                    <div class="col-sm-2 .ml-0 .pl-0" >
+                        <button type="submit" onclick="cancle()" class="btn btn-default">Cancle</button>
+                    </div>
+                </div>
+            </div>
+            <div id="loading" class="center">
+            </div> 
+        </div> 
+        <div id="content" class="container">
+            <div class="title">Sitemap Generator</div>
+            <div class="col-md-10 col-md-offset-3">
+                <h2>Enter your website URL to create a sitemap.</h2>
+                <div class="form-group row">
+                    <div class="col-sm-6 .pr-0">
+                        <!-- <label for="url">URL </label> -->
+                        <input type="text" class="form-control" id="url" placeholder="Enter URL" />
+                    </div>
+                    <div class="col-sm-2 .ml-0 .pl-0">
+                        <button type="submit" onclick="generateSitemap()" class="btn btn-default">Create Sitemap</button>
+                    </div>
+                </div>
+            </div>
+            <div id="sitemapDiv">
+                <h2>Sitemap</h2>
+                <div id="sitemap"></div>    
+            </div>
+            </div>
+        </div>
+
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js"
+            integrity="sha512-DZqqY3PiOvTP9HkjIWgjO6ouCbq+dxqWoJZ/Q+zPYNHmlnI2dQnbJ5bxAHpAMw+LXRm4D72EIRXzvcHQtE8/VQ=="
+            crossorigin="anonymous"
+        ></script>
+        <script>
+            document.querySelector("#loader").style.visibility = "hidden"; 
+            document.querySelector("#sitemapDiv").style.visibility = "hidden"; 
+            requestId=""
+            isCancled=false
+            function cancle(){
+                isCancled=true;
+                hideLoader();
+            }
+            async function generateSitemap() {
+                try{
+                    let sitemap=document.getElementById("sitemap")
+                    sitemap.innerHTML=""
+                    let url = document.getElementById("url").value;
+                    // console.log(url)
+                    if (url == "") return alert("Please enter URL.");
+                    let generateSitemapURL="/generateSitemap"
+                    let getSitemapURL="/getSitemap"
+                    let response=await axios.post(generateSitemapURL, { "baseUrl": url })
+                    requestId=response.data.requestId
+                    showLoader()
+                    while(true && isCancled==false){
+                        let response=await axios.post(getSitemapURL, { "requestId": requestId })
+                        // console.log(response)
+                        if(response.data.error) {
+                            hideLoader()
+                            return alert("Unable to create sitemap. Please try with different URL")
+                        }
+                        if(response.data.status=="true" || response.data.status=="True"){
+                            // console.log(response.data.sitemap)
+                            createTable(response.data.sitemap.sort())
+                            document.querySelector( "#sitemapDiv").style.visibility = "visible"; 
+                            break
+                        }
+                        await new Promise(r => setTimeout(r, 5000));
+                    }
+                    hideLoader();
+                }catch(err){
+                    hideLoader();
+                    return alert("Unable to create sitemap. Please try with different/valid URL")
+                }
+            }
+            function showLoader(){
+                document.querySelector( 
+                  "#content").style.visibility = "hidden"; 
+                document.querySelector( 
+                  "#loader").style.visibility = "visible"; 
+            }
+            function hideLoader(){
+                document.querySelector( 
+                  "#loader").style.visibility = "hidden"; 
+                document.querySelector( 
+                    "#content").style.visibility = "visible"; 
+            }
+            function createTable(data){
+            let html=`<table class="table table-bordered">
+                <tbody class="tbody">`
+               for(i in data){
+                   html+=`
+                   <tr>
+                   <td>${data[i]}</td>
+                 </tr>`
+               }      
+               html+=`</tbody>
+              </table>`
+              let sitemap=document.getElementById("sitemap")
+              sitemap.innerHTML=""
+              sitemap.innerHTML=html
+            }
+        </script>
+    </body>
+</html>
