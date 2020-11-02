@@ -36,6 +36,7 @@ class Crawler(threading.Thread):
         self.stop = True
 
     def run(self):
+        print("Generating sitemap")
         self.stop=False
         while True and self.stop == False:
             if self.count == 0 or self.error:
@@ -94,7 +95,6 @@ def crawlerWorker(crawler, url):
     if crawler.stop:
         return
     try:
-        print("Crawling page")
         browser = getDriver()
         if connectToBase(browser, url):
             sleep(2)
@@ -116,17 +116,21 @@ def getSiteMap(url):
     crawler.start()
     crawler.join()
     if crawler.error == False:
-        return crawler.crawledPages
+        return list(crawler.crawledPages)
     else:
         return None
 
 
 if __name__ == '__main__':
-    url = "https://www.google.com"
+    url = input("Enter URL : ")
     siteMap = getSiteMap(url)
+    print("+++++++++++ Result +++++++++++")
+    i=1
     if siteMap:
-        print(siteMap)
-        print(len(siteMap))
+        print("Size : "+str(len(siteMap)))
+        for link in siteMap:
+            print(i,link)
+            i+=1
     else:
-        print("Error while generating sitemap")
+        print("Error while generating sitemap. Please enter different/valid URL")
     pass

@@ -58,7 +58,7 @@
                 <h2>Please wait we are creating sitemap.</h2>
                 <div class="form-group row">
                     <div class="col-sm-2" >
-                        <button type="submit" id="cancleButton" onclick="cancle()" class="btn btn-default">Cancle</button>
+                        <button type="submit" id="cancelButton" onclick="cancel()" class="btn btn-default">cancel</button>
                     </div>
                 </div>
             </div>
@@ -94,21 +94,21 @@
             document.querySelector("#loader").style.visibility = "hidden"; 
             document.querySelector("#sitemapDiv").style.visibility = "hidden"; 
             requestId=""
-            isCancled=false
-            async function cancle(){
+            iscanceld=false
+            async function cancel(){
                 try{
-                    let cancleURL="/cancle"
-                    document.getElementById("cancleButton").disabled = true;
-                    let response=await axios.post(cancleURL, { "requestId": requestId })
-                    document.getElementById("cancleButton").disabled = false;
-                    isCancled=true;
+                    let cancelURL="/cancel"
+                    document.getElementById("cancelButton").disabled = true;
+                    let response=await axios.post(cancelURL, { "requestId": requestId })
+                    document.getElementById("cancelButton").disabled = false;
+                    iscanceld=true;
                     createTable(response.data.sitemap.sort())
                     document.querySelector( "#sitemapDiv").style.visibility = "visible"; 
                     alert("Displaying partially generated sitemap because this operation has been cancelled")                
                     hideLoader()
                 }catch(err){
                     console.log(err)
-                    document.getElementById("cancleButton").disabled = false;
+                    document.getElementById("cancelButton").disabled = false;
                 }
                 }
             async function generateSitemap() {
@@ -124,8 +124,8 @@
                     let response=await axios.post(generateSitemapURL, { "baseUrl": url })
                     requestId=response.data.requestId
                     showLoader()
-                    isCancled=false
-                    while(true && isCancled==false){
+                    iscanceld=false
+                    while(true && iscanceld==false){
                         let response=await axios.post(getSitemapURL, { "requestId": requestId })
                         if(response.data.error) {
                             createTable(response.data.sitemap.sort())
@@ -148,7 +148,7 @@
                 }
             }
             function showLoader(){
-                document.getElementById("cancleButton").disabled = false;
+                document.getElementById("cancelButton").disabled = false;
                 document.querySelector( 
                   "#content").style.visibility = "hidden"; 
                 document.querySelector( 

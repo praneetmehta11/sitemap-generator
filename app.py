@@ -48,7 +48,7 @@ def getSitemap():
         return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed), "message": "Generating sitemap"})
 
 
-@app.route('/cancle', methods=['POST'])
+@app.route('/cancel', methods=['POST'])
 def stopCrawling():
     body = request.json
     requestId = body["requestId"]
