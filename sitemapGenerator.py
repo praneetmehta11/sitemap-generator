@@ -6,7 +6,8 @@ from time import sleep, time
 from urllib.parse import urlsplit, urlunsplit, urljoin, urlparse
 import re
 
-MAX_WORKER=2
+MAX_WORKER = 4
+
 
 class Crawler(threading.Thread):
 
@@ -17,9 +18,9 @@ class Crawler(threading.Thread):
         self.count = 1
         self.executor = ThreadPoolExecutor(max_workers=MAX_WORKER)
         self.baseURL = self.normalizeUrl(baseUrl)
-        scheme=urlparse(self.baseURL).scheme
-        if scheme=="":
-            self.baseURL="https://"+self.baseURL
+        scheme = urlparse(self.baseURL).scheme
+        if scheme == "":
+            self.baseURL = "https://"+self.baseURL
         scheme, netloc, path, qs, anchor = urlsplit(self.baseURL)
         self.baseURL = urlunsplit((scheme, netloc, "", "", ""))
         self.host = urlparse(self.baseURL).netloc
@@ -27,11 +28,16 @@ class Crawler(threading.Thread):
         self.completed = False
         self.excludedPattern = r".(gif|jpg|jpeg|png|ico|bmp|ogg|webp|mp4|webm|mp3|ttf|woff|json|rss|atom|gz|zip|rar|7z|css|js|gzip|exe|svg)$"
         self.yetToCrawelQueue.put(self.baseURL)
+        self.stop = False
         print("BASE URL : ", self.baseURL)
         return
 
+    def kill(self):
+        self.stop = True
+
     def run(self):
-        while True:
+        self.stop=False
+        while True and self.stop == False:
             if self.count == 0 or self.error:
                 break
             if not self.yetToCrawelQueue.empty():
@@ -82,6 +88,8 @@ class Crawler(threading.Thread):
 
 
 def crawlerWorker(crawler, url):
+    if crawler.stop:
+        return
     try:
         print("Crawling page")
         browser = getDriver()

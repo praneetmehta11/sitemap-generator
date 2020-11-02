@@ -22,7 +22,9 @@ def generateSitemap():
     if not baseUrl.endswith("/"):
         baseUrl+="/"
     if baseUrl in sitemap:
-        return jsonify({"requestId": sitemap[baseUrl]["requestId"]})
+        crawler=sitemap[baseUrl]["crawler"]
+        if crawler.stop==False:
+            return jsonify({"requestId": sitemap[baseUrl]["requestId"]})
     id = str(uuid.uuid4())
     id = id.replace("-", "")
     activeCralwer[id] = Crawler(baseUrl)
@@ -40,10 +42,26 @@ def getSitemap():
     crawler = activeCralwer[requestId]
     if crawler.completed:
         if crawler.error:
-            return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed),"sitemap":[],"error":True})
+            return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed),"sitemap":list(crawler.crawledPages),"error":True})
         return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed),"sitemap":list(crawler.crawledPages)})
     else:
         return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed), "message": "Generating sitemap"})
+
+@app.route('/cancle', methods=['POST'])
+def stopCrawling():
+    body = request.json
+    requestId = body["requestId"]
+    if requestId not in activeCralwer:
+         return jsonify({"error": "Invalid RequestId"})
+    crawler = activeCralwer[requestId]
+    crawler.kill()
+    if crawler.completed:
+        if crawler.error:
+            return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed),"sitemap":list(crawler.crawledPages),"error":True})
+        return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed),"sitemap":list(crawler.crawledPages)})
+    else:
+        return jsonify({"requestId": requestId, "baseUrl": crawler.baseURL, "status": str(crawler.completed), "message": "Generating sitemap","sitemap":list(crawler.crawledPages)})
+
 
 
 if __name__ == '__main__':

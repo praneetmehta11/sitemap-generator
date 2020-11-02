@@ -57,7 +57,7 @@
             <div class="col-md-10 col-md-offset-3">
                 <h2>Please wait we are creating sitemap.</h2>
                 <div class="form-group row">
-                    <div class="col-sm-2 .ml-0 .pl-0" >
+                    <div class="col-sm-2" >
                         <button type="submit" onclick="cancle()" class="btn btn-default">Cancle</button>
                     </div>
                 </div>
@@ -70,11 +70,10 @@
             <div class="col-md-10 col-md-offset-3">
                 <h2>Enter your website URL to create a sitemap.</h2>
                 <div class="form-group row">
-                    <div class="col-sm-6 .pr-0">
-                        <!-- <label for="url">URL </label> -->
+                    <div class="col-sm-6 ">
                         <input type="text" class="form-control" id="url" placeholder="Enter URL" />
                     </div>
-                    <div class="col-sm-2 .ml-0 .pl-0">
+                    <div class="col-sm-2 ">
                         <button type="submit" onclick="generateSitemap()" class="btn btn-default">Create Sitemap</button>
                     </div>
                 </div>
@@ -96,12 +95,18 @@
             document.querySelector("#sitemapDiv").style.visibility = "hidden"; 
             requestId=""
             isCancled=false
-            function cancle(){
+            async function cancle(){
+                let cancleURL="/cancle"
+                let response=await axios.post(cancleURL, { "requestId": requestId })
                 isCancled=true;
-                hideLoader();
-            }
+                createTable(response.data.sitemap.sort())
+                document.querySelector( "#sitemapDiv").style.visibility = "visible"; 
+                alert("Displaying partically generated sitemap because this operation has been cancelled")                
+                hideLoader()
+                }
             async function generateSitemap() {
                 try{
+                    document.querySelector("#sitemapDiv").style.visibility = "hidden"; 
                     let sitemap=document.getElementById("sitemap")
                     sitemap.innerHTML=""
                     let url = document.getElementById("url").value;
@@ -110,14 +115,18 @@
                     let generateSitemapURL="/generateSitemap"
                     let getSitemapURL="/getSitemap"
                     let response=await axios.post(generateSitemapURL, { "baseUrl": url })
+                    console.log(response.data)
                     requestId=response.data.requestId
                     showLoader()
+                    isCancled=false
                     while(true && isCancled==false){
                         let response=await axios.post(getSitemapURL, { "requestId": requestId })
                         // console.log(response)
                         if(response.data.error) {
+                            createTable(response.data.sitemap.sort())
                             hideLoader()
-                            return alert("Unable to create sitemap. Please try with different URL")
+                            throw new Error("Error while crawling webpage")
+                            // return alert("Unable to create sitemap. Please try with different/valid URL")
                         }
                         if(response.data.status=="true" || response.data.status=="True"){
                             // console.log(response.data.sitemap)
@@ -127,9 +136,11 @@
                         }
                         await new Promise(r => setTimeout(r, 5000));
                     }
+                    document.querySelector( "#sitemapDiv").style.visibility = "visible";        
                     hideLoader();
                 }catch(err){
                     hideLoader();
+                    console.log(err)
                     return alert("Unable to create sitemap. Please try with different/valid URL")
                 }
             }
